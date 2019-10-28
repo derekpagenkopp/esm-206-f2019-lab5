@@ -9,3 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Objecives:
+
+- Getting counts for different groups
+- Use {lubridate} to parse dates
+- Find confidence Intervals and do t-tests with t.test()
+- Heatmap with geom_tile()
+
+```{r, include = FALSE}
+library(tidyverse)
+library(lubridate)
+library(here)
+library(janitor)
+
+```
+
