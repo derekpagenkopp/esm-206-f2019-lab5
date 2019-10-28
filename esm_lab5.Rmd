@@ -24,3 +24,101 @@ library(janitor)
 
 ```
 
+```{r,}
+# Import Lobster Data
+lobster_abundance <- read_csv(here::here("data", "lobster_abundance.csv"), 
+                              na = "-99999") %>% 
+  clean_names()
+
+# Use the tidyr::uncount() function to expand a frequency variable
+
+lobster_tidy <- lobster_abundance %>% 
+  uncount(lobster_count)
+
+# Now it is in tidy format since each observation has its own row
+
+# Lets look at it a bunch of ways:
+
+# jitterplot of lobster sizes for each dif site
+
+ggplot(lobster_tidy, aes(x = site,
+                         y = size_mm)) +
+  geom_jitter(aes(color = site,
+                  width = 0.2))
+
+# violin plot
+
+ggplot(lobster_tidy, aes(x = site,
+                         y = size_mm)) +
+  geom_violin(aes(color = site))
+
+ggplot(lobster_tidy, aes(x = size_mm)) +
+  geom_histogram(aes(fill = site)) +
+  facet_wrap(~site, scales = "free")
+
+ggplot(lobster_tidy, aes(sample = size_mm)) +
+  geom_qq() +
+  facet_wrap(~site, scales = "free")
+
+# qq plot checks to see if sample variable is normally distributed
+
+# USe lubridate package to parse dates and times
+
+# Going to add a new column with mutate() that contains date as an actual date
+
+lobster_date <- lobster_tidy %>% 
+  mutate(date_new = lubridate::mdy(date))
+
+# Parse 'date' column to get different pieces separated
+
+lobster_parse_date <- lobster_date %>% 
+  mutate(obs_month = lubridate::month(date_new, label = TRUE),
+         obs_year = lubridate::year(date_new))
+
+# Count lobsters by different groupings
+
+# Lets say I want to count the number of lobsters by year and month
+
+lobster_ym <- lobster_parse_date %>% 
+  count(obs_year, obs_month)
+
+lobster_ym
+
+lobster_ysite <- lobster_parse_date %>% 
+  count(obs_year, site)
+
+lobster_site <- lobster_parse_date %>% 
+  count(site)
+
+lobster_summary <- lobster_parse_date %>% 
+  group_by(site) %>% 
+  summarize(mean_size = mean(size_mm, na.rm = TRUE),
+            sd_size = sd(size_mm, na.rm = TRUE),
+            sample_n = n())
+
+# Confidence Intervals and t-tests
+
+# Use the t.test() function to find confidence intervals and perform t-tests
+
+ivee_lobsters <- lobster_tidy %>% 
+  filter(site == "IVEE") %>% 
+  pull(size_mm)
+
+t.test(ivee_lobsters)
+
+# two sample t-test
+
+napl_sample <- lobster_tidy %>% 
+  filter(site =="NAPL") %>% 
+  pull(size_mm)
+
+mohk_sample <- lobster_tidy %>% 
+  filter(site =="MOHK") %>% 
+  pull(size_mm)
+
+mohk_napl_ttest <- t.test(napl_sample, mohk_sample)
+mohk_napl_ttest
+                              
+```
+
+
